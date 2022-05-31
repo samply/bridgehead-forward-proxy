@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  bridgehead-forward-proxy:
+    image: samply/bridgehead-forward-proxy
+    ports:
+      - "3128:3128"
+    volumes:
+      - "./custom-certs:/docker/custom-certs"
