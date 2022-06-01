@@ -27,8 +27,8 @@ if [ ! -z $http_proxy ]; then
 PROXY_HOST=$(echo $http_proxy | awk -F "[/:]" '{print $4}' )
 PROXY_PORT=$(echo $http_proxy | awk -F "[/:]" '{print $5}' )
 
-echo "cache_peer parent ${PROXY_HOST} ${PROXY_PORT} 0 ${OPTIONS}" ###>>  /etc/squid/squid.conf
+echo "cache_peer parent ${PROXY_HOST} ${PROXY_PORT} 0 ${OPTIONS}" >>  /etc/squid/squid.conf
 
 fi
 
-##/usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
+/usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
