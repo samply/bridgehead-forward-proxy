@@ -23,7 +23,7 @@ fi
 
 if [ $http_proxy ]
 
-echo "parent ${PROXY_HOST}  ${PROXY_PORT}  0 tls-cafile=/usr/local/share/ca-certificates/" >>  /etc/squid/squid.conf
+echo "parent ${PROXY_HOST}  ${PROXY_PORT}  0 ${OPTIONS} tls-cafile=/usr/local/share/ca-certificates/" >>  /etc/squid/squid.conf
 
 fi
 
