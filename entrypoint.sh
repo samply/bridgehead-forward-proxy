@@ -9,6 +9,22 @@ if [ -n "$(ls -A /docker/custom-certs 2>/dev/null)" ]; then
     done
     update-ca-certificates || (echo -e "\nThe system has REJECTED one of the certificates:"; ls -l /custom-certs/*; echo "Make sure that ALL of the certificates are valid."; exit 1)
     echo "Successfully imported custom-certs."
+
+    OPTIONS += "tls-cafile=/usr/local/share/ca-certificates/"
+
+fi
+
+
+if [ ! -z $http_proxy ]; then
+
+
+    OPTIONS += " login=${PROXY_USERNAME}:${PROXY_PASSWORD}"
+fi
+
+if [ $http_proxy ]
+
+echo "parent ${PROXY_HOST}  ${PROXY_PORT}  0 tls-cafile=/usr/local/share/ca-certificates/" >>  /etc/squid/squid.conf
+
 fi
 
 /usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
