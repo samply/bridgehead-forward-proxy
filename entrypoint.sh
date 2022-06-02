@@ -34,7 +34,7 @@ if [ ! -z $http_proxy ]; then
         OPTIONS+="login=${USERPW} "
     fi
 
-    echo "cache_peer parent ${HOST} ${PORT} 0 ${OPTIONS}" >>  /etc/squid/squid.conf
+    echo "cache_peer ${HOST} parent ${PORT} 0 ${OPTIONS}" >>  /etc/squid/squid.conf
 fi
 
 /usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
