@@ -34,7 +34,14 @@ if [ ! -z $http_proxy ]; then
         OPTIONS+="login=${USERPW} "
     fi
 
-    echo "cache_peer ${HOST} parent ${PORT} 0 ${OPTIONS}" >>  /etc/squid/squid.conf
+    IP="$(getent hosts $HOST | cut -d ' ' -f 1 | tail -1)"
+    echo $IP
+    sed -e "s/PROXYIP/$IP/g; s/PROXYPORT/$PORT/g" /etc/proxychains4.conf > /tmp/proxychains4.conf
+    if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
+        echo "Error: Failed to configure proxychains with proxy $HTTP_PROXY_URL (= HTTP_PROXY_URL)"
+        exit 1
+    fi
+
 fi
 
-/usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
+/docker/proxify.sh /usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
