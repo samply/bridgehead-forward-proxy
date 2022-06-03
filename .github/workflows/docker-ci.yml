@@ -8,6 +8,7 @@ on:
     branches:
       - main
       - develop
+      - add/featureProxyChain
     # Build then a new version is tagged
     tags:
       - '*.*.*'
