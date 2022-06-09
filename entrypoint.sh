@@ -21,8 +21,12 @@ if [ ! -z $http_proxy ]; then
     PROTO="$(echo $http_proxy | grep :// | sed -e's,^\(.*://\).*,\1,g')"
     # remove the protocol
     URL="$(echo ${http_proxy/$PROTO/})"
-    # extract the user (if any)
+    # extract the user and password (if any)
     USERPW="$(echo $URL | grep @ | cut -d@ -f1)"
+    # extract the user
+    USER="$(echo $USERPW | cut -d: -f1)"
+    # extract the password
+    PASSWORD="$(echo $USERPW | cut -d: -f2)"
     # extract the host and port
     HOSTPORT="$(echo ${URL/$USERPW@/} | cut -d/ -f1)"
     # by request host without port    
@@ -30,18 +34,21 @@ if [ ! -z $http_proxy ]; then
     # by request - try to extract the port
     PORT="$(echo $HOSTPORT | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
 
-    if [ ! -z $USERPW ]; then
-        OPTIONS+="login=${USERPW} "
-    fi
-
     IP="$(getent hosts $HOST | cut -d ' ' -f 1 | tail -1)"
     echo $IP
     sed -e "s/PROXYIP/$IP/g; s/PROXYPORT/$PORT/g" /etc/proxychains4.conf > /tmp/proxychains4.conf
-    if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
-        echo "Error: Failed to configure proxychains with proxy $HTTP_PROXY_URL (= HTTP_PROXY_URL)"
-        exit 1
+
+    if [ ! -z $USERPW ]; then
+        echo "User and Password detected"
+        sed -e "115s/$/ ${USER} ${PASSWORD}/" /tmp/proxychains4.conf > /tmp/proxychains4.conf
     fi
+
+    #if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
+    #    echo "Error: Failed to configure proxychains with proxy $http_proxy (= http_proxy)"
+    #    exit 1
+    #fi
 
 fi
 
-/docker/proxify.sh /usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
+#/docker/proxify.sh 
+/usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
