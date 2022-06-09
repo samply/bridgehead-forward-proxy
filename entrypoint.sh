@@ -43,12 +43,11 @@ if [ ! -z $http_proxy ]; then
         sed -e "115s/$/ ${USER} ${PASSWORD}/" /tmp/proxychains4.conf > /tmp/proxychains4.conf
     fi
 
-    #if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
-    #    echo "Error: Failed to configure proxychains with proxy $http_proxy (= http_proxy)"
-    #    exit 1
-    #fi
+    if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
+        echo "Error: Failed to configure proxychains with proxy $http_proxy (= http_proxy)"
+        exit 1
+    fi
 
 fi
 
-#/docker/proxify.sh 
-/usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
+/docker/proxify.sh /usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
