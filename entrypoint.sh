@@ -48,6 +48,8 @@ if [ ! -z $http_proxy ]; then
         exit 1
     fi
 
+    /docker/proxify.sh /usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
+else
+    /usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
 fi
 
-/docker/proxify.sh /usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
