@@ -6,8 +6,7 @@ name: Docker CI
 on:
   push:
     branches:
-      - main
-      - develop
+      - '*'
     # Build then a new version is tagged
     tags:
       - '*.*.*'
