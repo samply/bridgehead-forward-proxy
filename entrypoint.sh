@@ -5,7 +5,7 @@ OPTIONS=""
 echo "Checking for user supplied certificates"
 if [ -n "$(ls -A /docker/custom-certs 2>/dev/null)" ]; then
     echo "Found user supplied certificates"
-    for file in /docker/custom-certs/*; do
+    for file in /docker/custom-certs/*.pem; do
         echo "Importing certificate $file to /usr/local/share/ca-certificates/$(basename $file).crt"
         cp -v $file /usr/local/share/ca-certificates/$(basename $file).crt
         OPTIONS+="tls-cafile=/usr/local/share/ca-certificates/$(basename $file).crt"
