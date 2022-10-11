@@ -43,18 +43,17 @@ if [ ! -z $https_proxy ]; then
     : ${PROXY_PASSWORD:=$PASSWORD}
 
     IP="$(getent hosts $HOST | cut -d ' ' -f 1 | tail -1)"
-    echo $IP
     LINE="http $IP $PORT"
 
     if [ ! -z $PROXY_PASSWORD ]; then
-        echo "User and Password detected"
+        echo "Using proxy at $IP:$PORT with username $PROXY_USERNAME and password (hidden)."
         LINE+=" $PROXY_USERNAME $PROXY_PASSWORD"
+    else
+        echo "Using proxy at $IP:$PORT without authentication."
     fi
 
     cat /etc/proxychains4.conf > /tmp/proxychains4.conf
     echo "$LINE" >> /tmp/proxychains4.conf
-
-    cat /tmp/proxychains4.conf
 
     if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
         echo "Error: Failed to configure proxychains with proxy $https_proxy (= https_proxy)"
