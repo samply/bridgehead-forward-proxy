@@ -1,5 +1,4 @@
 FROM ubuntu/squid:latest
-VOLUME ["/docker/custom-certs"]
 ADD ./entrypoint.sh ./proxify.sh /docker/
 RUN apt-get update -y && apt-get install -y \
     proxychains4 \
