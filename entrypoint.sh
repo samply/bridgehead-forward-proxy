@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+## All credit to https://stackoverflow.com/questions/6250698/how-to-decode-url-encoded-string-in-shell
+function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
+
 OPTIONS=""
 
 echo "Checking for user supplied certificates"
@@ -38,16 +41,13 @@ if [ ! -z $https_proxy ]; then
     # by request - try to extract the port
     PORT="$(echo $HOSTPORT | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
 
-    # If there was no user/password in the URL, check env vars USERNAME, PASSWORD
-    : ${PROXY_USERNAME:=$USERNAME}
-    : ${PROXY_PASSWORD:=$PASSWORD}
-
     IP="$(getent hosts $HOST | cut -d ' ' -f 1 | tail -1)"
     LINE="http $IP $PORT"
 
     if [ ! -z $PROXY_PASSWORD ]; then
         echo "Using proxy at $IP:$PORT with username $PROXY_USERNAME and password (hidden)."
-        LINE+=" $PROXY_USERNAME $PROXY_PASSWORD"
+        PROXY_PASSWORD_ESCAPED=$(urldecode "$PROXY_PASSWORD")
+        LINE+=" $PROXY_USERNAME $PROXY_PASSWORD_ESCAPED"
     else
         echo "Using proxy at $IP:$PORT without authentication."
     fi
