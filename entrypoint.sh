@@ -41,7 +41,13 @@ if [ ! -z $https_proxy ]; then
     # by request - try to extract the port
     PORT="$(echo $HOSTPORT | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
 
-    IP="$(getent hosts $HOST | cut -d ' ' -f 1 | tail -1)"
+    IP=""
+    if [[ $HOST =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        IP="$HOST"
+      else
+        IP="$(getent hosts $HOST | cut -d ' ' -f 1 | tail -1)"
+    fi
+
     LINE="http $IP $PORT"
 
     if [ ! -z $PROXY_PASSWORD ]; then
