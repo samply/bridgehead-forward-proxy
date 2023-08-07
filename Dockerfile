@@ -1,5 +1,6 @@
 FROM ubuntu/squid:latest
 ADD ./entrypoint.sh ./proxify.sh /docker/
+ADD dont_write_to_disk.conf /etc/squid/conf.d/
 RUN apt-get update -y && apt-get install -y \
     proxychains4 \
     && rm -rf /var/lib/apt/lists/*

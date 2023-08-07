@@ -7,4 +7,7 @@ services:
     ports:
       - "3128:3128"
     volumes:
-      - "./custom-certs:/docker/custom-certs"
+      - "./custom-certs:/docker/custom-certs:ro"
+    tmpfs:
+      - /var/log/squid
+      - /var/spool/squid
