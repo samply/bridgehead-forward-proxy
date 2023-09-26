@@ -24,28 +24,30 @@ fi
 if [ ! -z $https_proxy ]; then
 
     echo "Configuring proxy $https_proxy"
+    ## All credit to https://stackoverflow.com/a/6174447
+    # extract the protocol
+    PROTO="$(echo $https_proxy | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+    # remove the protocol
+    URL="$(echo ${https_proxy/$PROTO/})"
+    # extract the user and password (if any)
+    USERPW="$(echo $URL | grep @ | cut -d@ -f1)"
+    # extract the user
+    PROXY_USERNAME="$(echo $USERPW | cut -d: -f1)"
+    # extract the password
+    PROXY_PASSWORD="$(echo $USERPW | cut -d: -f2)"
+    # extract the host and port
+    HOSTPORT="$(echo ${URL/$USERPW@/} | cut -d/ -f1)"
+    # by request host without port
+    HOST="$(echo $HOSTPORT | sed -e 's,:.*,,g')"
+    # by request - try to extract the port
+    PORT="$(echo $HOSTPORT | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
+
     if [ ! -z $HTTPS_PROXY_PASSWORD ]; then
         PROXY_PASSWORD = $HTTPS_PROXY_PASSWORD
         PROXY_USERNAME = $HTTPS_PROXY_USERNAME
-    else
-        ## All credit to https://stackoverflow.com/a/6174447
-        # extract the protocol
-        PROTO="$(echo $https_proxy | grep :// | sed -e's,^\(.*://\).*,\1,g')"
-        # remove the protocol
-        URL="$(echo ${https_proxy/$PROTO/})"
-        # extract the user and password (if any)
-        USERPW="$(echo $URL | grep @ | cut -d@ -f1)"
-        # extract the user
-        PROXY_USERNAME="$(echo $USERPW | cut -d: -f1)"
-        # extract the password
-        PROXY_PASSWORD="$(echo $USERPW | cut -d: -f2)"
-        # extract the host and port
-        HOSTPORT="$(echo ${URL/$USERPW@/} | cut -d/ -f1)"
-        # by request host without port
-        HOST="$(echo $HOSTPORT | sed -e 's,:.*,,g')"
-        # by request - try to extract the port
-        PORT="$(echo $HOSTPORT | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
     fi
+
+
 
     IP=""
     if [[ $HOST =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
