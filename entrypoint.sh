@@ -22,6 +22,7 @@ fi
 : ${https_proxy:=$http_proxy}
 
 if [ ! -z $https_proxy ]; then
+
     echo "Configuring proxy $https_proxy"
     ## All credit to https://stackoverflow.com/a/6174447
     # extract the protocol
@@ -40,6 +41,13 @@ if [ ! -z $https_proxy ]; then
     HOST="$(echo $HOSTPORT | sed -e 's,:.*,,g')"
     # by request - try to extract the port
     PORT="$(echo $HOSTPORT | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
+
+    if [ ! -z $HTTPS_PROXY_PASSWORD ]; then
+        PROXY_PASSWORD = $HTTPS_PROXY_PASSWORD
+        PROXY_USERNAME = $HTTPS_PROXY_USERNAME
+    fi
+
+
 
     IP=""
     if [[ $HOST =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
