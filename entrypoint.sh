@@ -43,8 +43,8 @@ if [ ! -z $https_proxy ]; then
     PORT="$(echo $HOSTPORT | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
 
     if [ ! -z $HTTPS_PROXY_PASSWORD ]; then
-        PROXY_PASSWORD = $HTTPS_PROXY_PASSWORD
-        PROXY_USERNAME = $HTTPS_PROXY_USERNAME
+        PROXY_PASSWORD=$HTTPS_PROXY_PASSWORD
+        PROXY_USERNAME=$HTTPS_PROXY_USERNAME
     fi
 
 
