@@ -4,6 +4,7 @@
 name: Docker CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -22,7 +23,7 @@ jobs:
   build:
     # This workflow defines how a maven package is built, tested and published.
     # Visit: https://github.com/samply/github-workflows/blob/develop/.github/workflows/maven-ci.yml, for more information
-    uses: samply/github-workflows/.github/workflows/docker-ci.yml@main
+    uses: samply/github-workflows/.github/workflows/docker-ci.yml@docker-cache
     with:
       # The Docker Hub Repository you want eventually push to, e.g samply/share-client
       image-name: "samply/bridgehead-forward-proxy"
