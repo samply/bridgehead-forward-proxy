@@ -66,7 +66,8 @@ if [ ! -z $https_proxy ]; then
         echo "Using proxy at $IP:$PORT without authentication."
     fi
 
-    cat /etc/proxychains4.conf > /tmp/proxychains4.conf
+    # HACK: do not merge with this inverse grep to disable the setting
+    cat /etc/proxychains4.conf | grep -v "proxy_dns" > /tmp/proxychains4.conf
     echo "$LINE" >> /tmp/proxychains4.conf
 
     if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
