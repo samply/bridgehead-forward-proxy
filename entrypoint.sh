@@ -77,17 +77,20 @@ if [ ! -z $https_proxy ]; then
     fi
 
     LINE="http $IP $PORT"
+    SQUID_LINE="cache_peer $HOST parent $PORT 0 no-query default"
 
     if [ ! -z $PROXY_PASSWORD ]; then
         echo "Using proxy at $IP:$PORT with username $PROXY_USERNAME and password (hidden)."
         PROXY_PASSWORD_ESCAPED=$(urldecode "$PROXY_PASSWORD")
         LINE+=" $PROXY_USERNAME $PROXY_PASSWORD_ESCAPED"
+	SQUID_LINE+=" login=$PROXY_USERNAME:$PROXY_PASSWORD_ESCAPED"
     else
         echo "Using proxy at $IP:$PORT without authentication."
     fi
 
     cat /etc/proxychains4.conf > /tmp/proxychains4.conf
     echo "$LINE" >> /tmp/proxychains4.conf
+    echo "$SQUID_LINE" > /etc/squid/conf.d/50-parent.conf
 
     if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
         echo "Error: Failed to configure proxychains with proxy $https_proxy (= https_proxy)"
