@@ -1,7 +1,27 @@
 #!/usr/bin/env bash
 
-## All credit to https://stackoverflow.com/questions/6250698/how-to-decode-url-encoded-string-in-shell
-function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
+urldecode() {
+    local output=""
+    local i=0
+    local len=${#1}
+
+    while (( i < len )); do
+        local c="${1:i:1}"
+
+        if [[ "$c" == "%" && $((i+2)) -lt len ]]; then
+            local hex="${1:i+1:2}"
+            if [[ "$hex" =~ ^[0-9A-Fa-f]{2}$ ]]; then
+                output+=$(printf "\\x$hex")
+                ((i+=3))
+                continue
+            fi
+        fi
+	output+="$c"
+
+        ((i++))
+    done
+    printf '%s' "$output"
+}
 
 OPTIONS=""
 
