@@ -1,7 +1,27 @@
 #!/usr/bin/env bash
 
-## All credit to https://stackoverflow.com/questions/6250698/how-to-decode-url-encoded-string-in-shell
-function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
+urldecode() {
+    local output=""
+    local i=0
+    local len=${#1}
+
+    while (( i < len )); do
+        local c="${1:i:1}"
+
+        if [[ "$c" == "%" && $((i+2)) -lt len ]]; then
+            local hex="${1:i+1:2}"
+            if [[ "$hex" =~ ^[0-9A-Fa-f]{2}$ ]]; then
+                output+=$(printf "\\x$hex")
+                ((i+=3))
+                continue
+            fi
+        fi
+	output+="$c"
+
+        ((i++))
+    done
+    printf '%s' "$output"
+}
 
 OPTIONS=""
 
@@ -57,17 +77,20 @@ if [ ! -z $https_proxy ]; then
     fi
 
     LINE="http $IP $PORT"
+    SQUID_LINE="cache_peer $HOST parent $PORT 0 no-query default"
 
     if [ ! -z $PROXY_PASSWORD ]; then
         echo "Using proxy at $IP:$PORT with username $PROXY_USERNAME and password (hidden)."
         PROXY_PASSWORD_ESCAPED=$(urldecode "$PROXY_PASSWORD")
         LINE+=" $PROXY_USERNAME $PROXY_PASSWORD_ESCAPED"
+	SQUID_LINE+=" login=$PROXY_USERNAME:$PROXY_PASSWORD_ESCAPED"
     else
         echo "Using proxy at $IP:$PORT without authentication."
     fi
 
     cat /etc/proxychains4.conf > /tmp/proxychains4.conf
     echo "$LINE" >> /tmp/proxychains4.conf
+    echo "$SQUID_LINE" > /etc/squid/conf.d/50-parent.conf
 
     if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
         echo "Error: Failed to configure proxychains with proxy $https_proxy (= https_proxy)"
