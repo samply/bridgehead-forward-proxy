@@ -47,8 +47,6 @@ if [ ! -z $https_proxy ]; then
         PROXY_USERNAME=$HTTPS_PROXY_USERNAME
     fi
 
-
-
     IP=""
     if [[ $HOST =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         IP="$HOST"
@@ -56,24 +54,23 @@ if [ ! -z $https_proxy ]; then
         IP="$(getent hosts $HOST | cut -d ' ' -f 1 | tail -1)"
     fi
 
-    LINE="http $IP $PORT"
-
     if [ ! -z $PROXY_PASSWORD ]; then
         echo "Using proxy at $IP:$PORT with username $PROXY_USERNAME and password (hidden)."
         PROXY_PASSWORD_ESCAPED=$(urldecode "$PROXY_PASSWORD")
-        LINE+=" $PROXY_USERNAME $PROXY_PASSWORD_ESCAPED"
+        LINE="Upstream http $PROXY_USERNAME:$PROXY_PASSWORD_ESCAPED@$IP:$PORT"
     else
         echo "Using proxy at $IP:$PORT without authentication."
+        LINE="Upstream http $IP:$PORT"
     fi
 
-    cat /etc/proxychains4.conf > /tmp/proxychains4.conf
-    echo "$LINE" >> /tmp/proxychains4.conf
-
-    if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
-        echo "Error: Failed to configure proxychains with proxy $https_proxy (= https_proxy)"
-        exit 1
-    fi
-
+    sed \
+      -e 's/^Port .*/Port 3128/' \
+      -e 's/^#\?Allow .*/Allow 0.0.0.0\/0/' \
+      -e '/^Upstream /d' \
+      -e '/^#\?ViaProxyName .*/d' \
+      -e "\$a $LINE" \
+      -e '$a ViaProxyName "Samply.Bridgehead"' \
+      /etc/tinyproxy/tinyproxy.conf > /tmp/tinyproxy.conf
 fi
 
-exec /docker/proxify.sh /usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
+exec /usr/bin/tinyproxy -d -c /tmp/tinyproxy.conf

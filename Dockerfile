@@ -1,14 +1,10 @@
-FROM ubuntu/squid:latest
-ADD ./entrypoint.sh ./proxify.sh /docker/
-ADD dont_write_to_disk.conf /etc/squid/conf.d/
-RUN apt-get update -y && apt-get install -y \
-    proxychains4 \
-    && rm -rf /var/lib/apt/lists/*
-RUN sed -i 's/^# localnet /localnet /;s/^socks.*$/#http PROXYIP PROXYPORT/' /etc/proxychains4.conf
-RUN mkdir /docker/custom-certs; \
-    chmod +x /docker/entrypoint.sh /docker/proxify.sh
-    
-# This is necessary as the upstream image won't forward a SIGINT/SIGTERM correctly.
-STOPSIGNAL SIGKILL
+FROM ubuntu:noble
+
+RUN \
+    --mount=type=tmpfs,target=/var/lib/apt/ \
+    --mount=type=tmpfs,target=/var/log/ \
+    apt-get update && apt-get install -y tinyproxy-bin
+
+ADD ./entrypoint.sh /docker/
 
 ENTRYPOINT ["/docker/entrypoint.sh"]
