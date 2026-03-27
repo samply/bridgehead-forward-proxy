@@ -3,7 +3,7 @@ FROM ubuntu:noble AS build
 RUN \
     --mount=type=tmpfs,target=/var/lib/apt/ \
     --mount=type=tmpfs,target=/var/log/ \
-    apt-get update && apt-get install -y tinyproxy
+    apt-get update && apt-get install -y tinyproxy --no-install-recommends
 
 FROM ubuntu:noble
 
