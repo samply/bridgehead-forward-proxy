@@ -3,23 +3,21 @@
 ## All credit to https://stackoverflow.com/questions/6250698/how-to-decode-url-encoded-string-in-shell
 function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
 
-OPTIONS=""
-
-echo "Checking for user supplied certificates"
-if [ -n "$(ls -A /docker/custom-certs/*.pem 2>/dev/null)" ]; then
-    echo "Found user supplied certificates"
-    for file in /docker/custom-certs/*.pem; do
-        echo "Importing certificate $file to /usr/local/share/ca-certificates/$(basename $file).crt"
-        cp -v $file /usr/local/share/ca-certificates/$(basename $file).crt
-        OPTIONS+="tls-cafile=/usr/local/share/ca-certificates/$(basename $file).crt"
-    done
-    update-ca-certificates || (echo -e "\nThe system has REJECTED one of the certificates:"; ls -l /custom-certs/*; echo "Make sure that ALL of the certificates are valid."; exit 1)
-    echo "Successfully imported custom-certs."
-fi
-
 : ${https_proxy:=$HTTPS_PROXY}
 : ${https_proxy:=$HTTP_PROXY}
 : ${https_proxy:=$http_proxy}
+
+sed \
+  -e 's/^Port .*/Port 3128/' \
+  -e 's/^User .*/User nobody/' \
+  -e 's/^Group .*/Group nogroup/' \
+  -e 's/^#\?Allow .*/Allow 0.0.0.0\/0/' \
+  -e '/^Upstream /d' \
+  -e '/^PidFile /d' \
+  -e '/^LogFile /d' \
+  -e '/^#\?ViaProxyName .*/d' \
+  -e '$a ViaProxyName "Samply.Bridgehead"' \
+  /docker/tinyproxy.conf > /tmp/tinyproxy.conf
 
 if [ ! -z $https_proxy ]; then
 
@@ -47,8 +45,6 @@ if [ ! -z $https_proxy ]; then
         PROXY_USERNAME=$HTTPS_PROXY_USERNAME
     fi
 
-
-
     IP=""
     if [[ $HOST =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         IP="$HOST"
@@ -56,24 +52,18 @@ if [ ! -z $https_proxy ]; then
         IP="$(getent hosts $HOST | cut -d ' ' -f 1 | tail -1)"
     fi
 
-    LINE="http $IP $PORT"
-
     if [ ! -z $PROXY_PASSWORD ]; then
         echo "Using proxy at $IP:$PORT with username $PROXY_USERNAME and password (hidden)."
         PROXY_PASSWORD_ESCAPED=$(urldecode "$PROXY_PASSWORD")
-        LINE+=" $PROXY_USERNAME $PROXY_PASSWORD_ESCAPED"
+        LINE="Upstream http $PROXY_USERNAME:$PROXY_PASSWORD_ESCAPED@$IP:$PORT"
     else
         echo "Using proxy at $IP:$PORT without authentication."
+        LINE="Upstream http $IP:$PORT"
     fi
 
-    cat /etc/proxychains4.conf > /tmp/proxychains4.conf
-    echo "$LINE" >> /tmp/proxychains4.conf
-
-    if [ "proxychains-is-happy" != "$(/docker/proxify.sh echo proxychains-is-happy)" ]; then
-        echo "Error: Failed to configure proxychains with proxy $https_proxy (= https_proxy)"
-        exit 1
-    fi
-
+    sed -i \
+      -e "\$a $LINE" \
+      /tmp/tinyproxy.conf
 fi
 
-exec /docker/proxify.sh /usr/local/bin/entrypoint.sh -f /etc/squid/squid.conf -NYC
+exec /usr/bin/tinyproxy -d -c /tmp/tinyproxy.conf
