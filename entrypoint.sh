@@ -7,6 +7,18 @@ function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
 : ${https_proxy:=$HTTP_PROXY}
 : ${https_proxy:=$http_proxy}
 
+sed \
+  -e 's/^Port .*/Port 3128/' \
+  -e 's/^User .*/User nobody/' \
+  -e 's/^Group .*/Group nogroup/' \
+  -e 's/^#\?Allow .*/Allow 0.0.0.0\/0/' \
+  -e '/^Upstream /d' \
+  -e '/^PidFile /d' \
+  -e '/^LogFile /d' \
+  -e '/^#\?ViaProxyName .*/d' \
+  -e '$a ViaProxyName "Samply.Bridgehead"' \
+  /docker/tinyproxy.conf > /tmp/tinyproxy.conf
+
 if [ ! -z $https_proxy ]; then
 
     echo "Configuring proxy $https_proxy"
@@ -49,14 +61,9 @@ if [ ! -z $https_proxy ]; then
         LINE="Upstream http $IP:$PORT"
     fi
 
-    sed \
-      -e 's/^Port .*/Port 3128/' \
-      -e 's/^#\?Allow .*/Allow 0.0.0.0\/0/' \
-      -e '/^Upstream /d' \
-      -e '/^#\?ViaProxyName .*/d' \
+    sed -i \
       -e "\$a $LINE" \
-      -e '$a ViaProxyName "Samply.Bridgehead"' \
-      /etc/tinyproxy/tinyproxy.conf > /tmp/tinyproxy.conf
+      /tmp/tinyproxy.conf
 fi
 
 exec /usr/bin/tinyproxy -d -c /tmp/tinyproxy.conf
